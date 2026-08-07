@@ -92,7 +92,7 @@ class LTX2MLXModelLoader(io.ComfyNode):
         pipeline_cls = _pipeline_class(pipeline_type)
         kwargs = {"model_dir": resolved_dir}
         if low_ram:
-            kwargs["low_ram"] = True
+            kwargs["low_ram_streaming"] = True
         pipeline = pipeline_cls(**kwargs)
 
         _PIPELINE_CACHE.clear()
@@ -139,7 +139,7 @@ class LTX2MLXAudioModelLoader(io.ComfyNode):
 
         kwargs = {"model_dir": resolved_dir}
         if low_ram:
-            kwargs["low_ram"] = True
+            kwargs["low_ram_streaming"] = True
         pipeline = A2VidPipelineTwoStage(**kwargs)
 
         _PIPELINE_CACHE.clear()

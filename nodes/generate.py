@@ -57,6 +57,7 @@ class LTX2MLXGenerate(io.ComfyNode):
                 ),
                 io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFF),
                 io.Float.Input("cfg_scale", default=3.0, min=0.0, max=20.0, step=0.1),
+                io.Float.Input("frame_rate", default=24.0, min=1.0, max=60.0),
             ],
             outputs=[
                 io.Video.Output(),
@@ -73,6 +74,7 @@ class LTX2MLXGenerate(io.ComfyNode):
         num_frames: int,
         seed: int,
         cfg_scale: float,
+        frame_rate: float,
         image=None,
     ) -> io.NodeOutput:
         frames = _snap_frame_count(num_frames)
@@ -89,6 +91,7 @@ class LTX2MLXGenerate(io.ComfyNode):
                 height=height,
                 width=width,
                 num_frames=frames,
+                frame_rate=frame_rate,
                 seed=seed,
                 cfg_scale=cfg_scale,
                 image=image_path,
