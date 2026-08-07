@@ -2,11 +2,10 @@ import os
 import tempfile
 
 import soundfile as sf
-from comfy_api.input_impl import VideoFromFile
 from comfy_api.latest import io
 
 from ..nodes_registry import comfy_node
-from .generate import _output_path, _snap_frame_count, _tensor_to_image_path
+from .generate import _save_render, _snap_frame_count, _tensor_to_image_path, _tmp_render_path
 
 
 def _audio_to_wav_path(audio: dict) -> tuple[str, float]:
@@ -55,7 +54,10 @@ class LTX2MLXAudioToVideo(io.ComfyNode):
                     tooltip="Used only when match_audio_length is off.",
                 ),
                 io.Int.Input("seed", default=0, min=0, max=0xFFFFFFFF),
+                io.String.Input("filename_prefix", default="ltx2mlx/a2v"),
             ],
+            hidden=[io.Hidden.prompt, io.Hidden.extra_pnginfo],
+            is_output_node=True,
             outputs=[
                 io.Video.Output(),
             ],
@@ -73,9 +75,10 @@ class LTX2MLXAudioToVideo(io.ComfyNode):
         match_audio_length: bool,
         num_frames: int,
         seed: int,
+        filename_prefix: str,
         image=None,
     ) -> io.NodeOutput:
-        output_path = _output_path("ltx2mlx_a2v_")
+        tmp_path = _tmp_render_path()
         audio_path, audio_duration = _audio_to_wav_path(audio)
         image_path = _tensor_to_image_path(image) if image is not None else None
 
@@ -87,7 +90,7 @@ class LTX2MLXAudioToVideo(io.ComfyNode):
         try:
             pipeline.generate_and_save(
                 prompt=prompt,
-                output_path=output_path,
+                output_path=tmp_path,
                 audio_path=audio_path,
                 height=height,
                 width=width,
@@ -102,4 +105,4 @@ class LTX2MLXAudioToVideo(io.ComfyNode):
             if image_path is not None:
                 os.remove(image_path)
 
-        return io.NodeOutput(VideoFromFile(output_path))
+        return _save_render(tmp_path, filename_prefix)
