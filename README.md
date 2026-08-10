@@ -54,6 +54,38 @@ Only one pipeline is kept resident at a time — loading a new one (or switching
 T2V/I2V and A2V loaders) evicts the previous pipeline from memory, since the 22B model doesn't
 comfortably fit twice even at q8/q4.
 
+## Benchmark
+
+Measured with the direct Python API (`pipeline.generate_and_save(...)`, no ComfyUI server
+overhead), one pipeline at a time so no tier/type shared cached weights:
+
+- **Hardware**: Apple M4 Max, 64 GB unified memory, macOS 26.3
+- **Model tier**: `dgrauet/ltx-2.3-mlx-q4`, `low_ram_streaming` off
+- **Settings**: 704x480 (two-stage pipelines snap the intermediate/output to a multiple of 64,
+  landing at 704x448), 49 frames (`8*6+1`, ~2s @ 24fps), `cfg_scale=3.0`, seed 42, single fixed
+  prompt, cold pipeline load per run (no warm cache reuse between pipeline types)
+
+| Pipeline type  | Model/text-encoder load | Generate time | Frames/sec | Notes |
+|----------------|-------------------------:|---------------:|-----------:|-------|
+| `distilled`      | ~34s  | 88s     | 0.56  | 8-step + 3-step denoise, fastest by a wide margin |
+| `two_stage`      | ~41s  | 964s (~16.1 min)  | 0.051 | 30-step guided denoise per stage |
+| `two_stage_hq`   | ~40s  | 968s (~16.1 min)  | 0.051 | Same step count as `two_stage`; HQ pass cost didn't show up at this resolution/frame count |
+| `one_stage`      | ~24s  | 2465s (~41.1 min) | 0.02  | 30-step guided denoise at full resolution (no half-res first stage) — the slowest option here |
+
+Takeaways:
+- `distilled` is roughly 11x faster than `two_stage`/`two_stage_hq` and 28x faster than
+  `one_stage` at this resolution/frame count — the right default for iteration and previews.
+- `two_stage`/`two_stage_hq` run their expensive guided denoise at half resolution first, then
+  a short refinement pass, which is why they land far below `one_stage` despite doing "two
+  passes" — `one_stage` pays full 30-step guided denoise cost at full resolution instead.
+- These numbers are for the q4 tier only; q8/bf16 will be slower and use proportionally more
+  unified memory (see the RAM table above), and a prior session on this same machine saw q8 at
+  1920x1080/8s exceed an 8-hour render budget under heavy swap pressure — keep resolution/frame
+  count modest, or enable `low_ram`, on tighter-memory machines.
+- Load time includes the Gemma text encoder load + prompt encoding + transformer weight load;
+  it's a fixed one-time cost per pipeline (re)instantiation, not per-generation, and is small
+  relative to generate time for every pipeline type above.
+
 ## Status
 
 Early / alpha, mirroring the maturity level of the upstream `ltx-2-mlx` port. Retake/extend,
