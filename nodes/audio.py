@@ -8,13 +8,38 @@ from ..nodes_registry import comfy_node
 from .generate import _save_render, _snap_frame_count, _tensor_to_image_path, _tmp_render_path
 
 
-def _audio_to_wav_path(audio: dict) -> tuple[str, float]:
+def _audio_duration(audio: dict) -> float:
+    waveform = audio["waveform"]
+    sample_rate = audio["sample_rate"]
+    return waveform[0].shape[-1] / float(sample_rate)
+
+
+def _audio_to_wav_path(audio: dict, min_duration: float = 0.0) -> tuple[str, float]:
     waveform = audio["waveform"]
     sample_rate = audio["sample_rate"]
 
     # ComfyUI AUDIO tensors are (batch, channels, samples); take the first item.
     samples = waveform[0].transpose(0, 1).cpu().numpy()
     duration = samples.shape[0] / float(sample_rate)
+
+    if min_duration > duration:
+        # match_audio_length's video-frame -> duration snapping ("+1 frame"
+        # rounding to satisfy the 8k+1 VAE constraint) can ask for slightly
+        # more audio than the source clip actually has. ltx_pipelines_mlx
+        # sizes its audio-token RoPE tables off the requested video duration
+        # regardless of how much real audio content there is, so encoding a
+        # too-short clip yields fewer audio-latent tokens than the RoPE
+        # tables expect and crashes with a broadcast_shapes mismatch. Pad
+        # with silence so the encoded audio always covers the requested
+        # duration.
+        import numpy as np
+
+        pad_samples = int(round((min_duration - duration) * sample_rate))
+        samples = np.concatenate(
+            [samples, np.zeros((pad_samples, samples.shape[1]), dtype=samples.dtype)],
+            axis=0,
+        )
+        duration = samples.shape[0] / float(sample_rate)
 
     handle, path = tempfile.mkstemp(suffix=".wav", prefix="ltx2mlx_audio_")
     os.close(handle)
@@ -79,13 +104,17 @@ class LTX2MLXAudioToVideo(io.ComfyNode):
         image=None,
     ) -> io.NodeOutput:
         tmp_path = _tmp_render_path()
-        audio_path, audio_duration = _audio_to_wav_path(audio)
         image_path = _tensor_to_image_path(image) if image is not None else None
 
+        raw_audio_duration = _audio_duration(audio)
         if match_audio_length:
-            frames = _snap_frame_count(round(audio_duration * frame_rate) + 1)
+            frames = _snap_frame_count(round(raw_audio_duration * frame_rate) + 1)
         else:
             frames = _snap_frame_count(num_frames)
+
+        audio_path, audio_duration = _audio_to_wav_path(
+            audio, min_duration=frames / float(frame_rate)
+        )
 
         try:
             pipeline.generate_and_save(
