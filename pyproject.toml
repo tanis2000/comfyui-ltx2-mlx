@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-ltx2-mlx"
 description = "ComfyUI nodes for running Lightricks LTX-2.3 video generation natively on Apple Silicon via MLX (ltx-2-mlx), including text-to-video, image-to-video, and audio-to-video."
-version = "0.1.0"
+version = "0.1.1"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
 dependencies = [
