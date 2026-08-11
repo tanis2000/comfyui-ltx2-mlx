@@ -1,0 +1,167 @@
+{
+  "id": "ltx2mlx-text-to-video",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LTX2MLXModelLoader",
+      "pos": [80, 120],
+      "size": [360, 170],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "LTX2MLX_PIPELINE",
+          "slot_index": 0,
+          "links": [1]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTX2MLXModelLoader"
+      },
+      "widgets_values": [
+        "dgrauet/ltx-2.3-mlx-q8",
+        "distilled",
+        false,
+        ""
+      ]
+    },
+    {
+      "id": 2,
+      "type": "LTX2MLXGenerate",
+      "pos": [500, 80],
+      "size": [420, 420],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "LTX2MLX_PIPELINE",
+          "link": 1
+        },
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {"name": "prompt"},
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {"name": "height"},
+          "link": null
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {"name": "width"},
+          "link": null
+        },
+        {
+          "localized_name": "num_frames",
+          "name": "num_frames",
+          "type": "INT",
+          "widget": {"name": "num_frames"},
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {"name": "seed"},
+          "link": null
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {"name": "cfg_scale"},
+          "link": null
+        },
+        {
+          "localized_name": "frame_rate",
+          "name": "frame_rate",
+          "type": "FLOAT",
+          "widget": {"name": "frame_rate"},
+          "link": null
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {"name": "filename_prefix"},
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VIDEO",
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "slot_index": 0,
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTX2MLXGenerate"
+      },
+      "widgets_values": [
+        "a small sailboat gently rocking on calm ocean water at sunset, cinematic",
+        256,
+        256,
+        25,
+        0,
+        "fixed",
+        3.0,
+        24.0,
+        "ltx2mlx/video"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "Note",
+      "pos": [80, 320],
+      "size": [360, 230],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {"text": ""},
+      "widgets_values": [
+        "LTX-2 MLX — Text to Video\n\nRequires macOS on Apple Silicon (arm64), ComfyUI-LTXVideo-style env setup per this pack's README, and ltx-2-mlx weights downloaded (dgrauet/ltx-2.3-mlx-q8 here).\n\nLTX2MLXGenerate saves + previews the video itself (is_output_node) -- no separate SaveVideo/PreviewVideo node is needed downstream.\n\nThis example uses tiny settings (256x256, 25 frames, distilled pipeline) to keep runtime short. For production quality, expect much longer render times and higher memory pressure -- see this pack's README / the parent repo's MLX_INTEGRATION_NOTES.md for the two_stage/q8 8h+ render investigation."
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "LTX2MLX_PIPELINE"]
+  ],
+  "groups": [],
+  "definitions": {"subgraphs": []},
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4
+}

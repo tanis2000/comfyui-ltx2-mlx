@@ -54,6 +54,23 @@ Only one pipeline is kept resident at a time — loading a new one (or switching
 T2V/I2V and A2V loaders) evicts the previous pipeline from memory, since the 22B model doesn't
 comfortably fit twice even at q8/q4.
 
+## Example workflow
+
+[`examples/ltx2mlx_text_to_video.json`](examples/ltx2mlx_text_to_video.json) —
+a minimal `LTX2MLXModelLoader` → `LTX2MLXGenerate` graph using the cached
+`dgrauet/ltx-2.3-mlx-q8` tier with the `distilled` pipeline (fastest option).
+`LTX2MLXGenerate` saves and previews the video itself (`is_output_node`) — no
+separate `SaveVideo`/`PreviewVideo` node is needed downstream. Load it in
+ComfyUI via **Workflow → Open** (or drag the file onto the canvas).
+
+![LTX-2 MLX example workflow](examples/ltx2mlx_workflow_screenshot.png)
+
+Ran end-to-end against a real ComfyUI server (`/prompt` → `/history`, zero
+`node_errors`) at tiny settings (256×256, 25 frames) to keep runtime short.
+The output ([`examples/ltx2mlx_t2v_output.mp4`](examples/ltx2mlx_t2v_output.mp4)):
+
+![LTX-2 MLX example output frame](examples/ltx2mlx_t2v_output_frame.png)
+
 ## Benchmark
 
 Measured with the direct Python API (`pipeline.generate_and_save(...)`, no ComfyUI server
