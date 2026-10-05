@@ -31,7 +31,7 @@ to support fp8.
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/vrgamegirl19/comfyui-ltx2-mlx.git
+git clone https://github.com/tanis2000/comfyui-ltx2-mlx.git
 cd comfyui-ltx2-mlx
 pip install -r requirements.txt
 ```

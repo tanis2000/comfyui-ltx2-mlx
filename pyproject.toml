@@ -17,8 +17,8 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/vrgamegirl19/comfyui-ltx2-mlx"
-"Bug Tracker" = "https://github.com/vrgamegirl19/comfyui-ltx2-mlx/issues"
+Repository = "https://github.com/tanis2000/comfyui-ltx2-mlx"
+"Bug Tracker" = "https://github.com/tanis2000/comfyui-ltx2-mlx/issues"
 
 [tool.comfy]
 PublisherId = "tanis2000"
