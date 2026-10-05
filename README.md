@@ -74,6 +74,12 @@ The output ([`examples/ltx2mlx_t2v_output.mp4`](examples/ltx2mlx_t2v_output.mp4)
 
 ![LTX-2 MLX example output frame](examples/ltx2mlx_t2v_output_frame.png)
 
+[`examples/ltx2mlx_text_to_video_lora.json`](examples/ltx2mlx_text_to_video_lora.json) —
+the same graph with an `LTX2MLXLora` node feeding the loader's `loras` input. It uses the
+Apache-2.0 [crtanim LoRA](https://huggingface.co/lovis93/crt-animation-terminal-ltx-2.3-lora):
+download `crtanim_10000.safetensors` into `ComfyUI/models/loras` and start the prompt with
+its trigger word `crtanim,`.
+
 ## Benchmark
 
 Measured with the direct Python API (`pipeline.generate_and_save(...)`, no ComfyUI server

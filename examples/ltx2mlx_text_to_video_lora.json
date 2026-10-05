@@ -1,0 +1,209 @@
+{
+  "id": "ltx2mlx-text-to-video-lora",
+  "revision": 0,
+  "last_node_id": 4,
+  "last_link_id": 2,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "LTX2MLXLora",
+      "pos": [80, 80],
+      "size": [360, 82],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "lora",
+          "name": "lora",
+          "type": "LTX2MLX_LORA",
+          "slot_index": 0,
+          "links": [1]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTX2MLXLora"
+      },
+      "widgets_values": [
+        "crtanim_10000.safetensors",
+        1.0
+      ]
+    },
+    {
+      "id": 2,
+      "type": "LTX2MLXModelLoader",
+      "pos": [80, 210],
+      "size": [360, 200],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "lora_0",
+          "name": "loras.lora_0",
+          "shape": 7,
+          "type": "LTX2MLX_LORA",
+          "link": 1
+        },
+        {
+          "label": "lora_1",
+          "name": "loras.lora_1",
+          "shape": 7,
+          "type": "LTX2MLX_LORA",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "LTX2MLX_PIPELINE",
+          "slot_index": 0,
+          "links": [2]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTX2MLXModelLoader"
+      },
+      "widgets_values": [
+        "dgrauet/ltx-2.3-mlx-q8",
+        "distilled",
+        false,
+        ""
+      ]
+    },
+    {
+      "id": 3,
+      "type": "LTX2MLXGenerate",
+      "pos": [500, 80],
+      "size": [420, 420],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "pipeline",
+          "name": "pipeline",
+          "type": "LTX2MLX_PIPELINE",
+          "link": 2
+        },
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "localized_name": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {"name": "prompt"},
+          "link": null
+        },
+        {
+          "localized_name": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {"name": "height"},
+          "link": null
+        },
+        {
+          "localized_name": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {"name": "width"},
+          "link": null
+        },
+        {
+          "localized_name": "num_frames",
+          "name": "num_frames",
+          "type": "INT",
+          "widget": {"name": "num_frames"},
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {"name": "seed"},
+          "link": null
+        },
+        {
+          "localized_name": "cfg_scale",
+          "name": "cfg_scale",
+          "type": "FLOAT",
+          "widget": {"name": "cfg_scale"},
+          "link": null
+        },
+        {
+          "localized_name": "frame_rate",
+          "name": "frame_rate",
+          "type": "FLOAT",
+          "widget": {"name": "frame_rate"},
+          "link": null
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {"name": "filename_prefix"},
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VIDEO",
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "slot_index": 0,
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LTX2MLXGenerate"
+      },
+      "widgets_values": [
+        "crtanim, a green phosphor computer terminal slowly typing out HELLO WORLD, blinking cursor, glowing scanlines",
+        256,
+        256,
+        25,
+        0,
+        "fixed",
+        3.0,
+        24.0,
+        "ltx2mlx/lora"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "Note",
+      "pos": [80, 460],
+      "size": [360, 260],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {"text": ""},
+      "widgets_values": [
+        "LTX-2 MLX — Text to Video with a LoRA\n\nUses the Apache-2.0 crtanim LoRA (CRT / retro terminal look): https://huggingface.co/lovis93/crt-animation-terminal-ltx-2.3-lora\nDownload crtanim_10000.safetensors into ComfyUI/models/loras, then pick it in the LTX2MLXLora node. Start the prompt with its trigger word, \"crtanim,\".\n\nAny ComfyUI-format LTX-2.3 LoRA works. To stack LoRAs, connect another LTX2MLXLora to the loader's next empty lora slot. LoRAs are fused when the pipeline loads, so changing one reloads the model.\n\nSame tiny settings as the plain text-to-video example (256x256, 25 frames, distilled pipeline)."
+      ]
+    }
+  ],
+  "links": [
+    [1, 1, 0, 2, 0, "LTX2MLX_LORA"],
+    [2, 2, 0, 3, 0, "LTX2MLX_PIPELINE"]
+  ],
+  "groups": [],
+  "definitions": {"subgraphs": []},
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1,
+      "offset": [0, 0]
+    }
+  },
+  "version": 0.4
+}
