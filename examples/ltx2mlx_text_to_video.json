@@ -1,7 +1,7 @@
 {
   "id": "ltx2mlx-text-to-video",
   "revision": 0,
-  "last_node_id": 2,
+  "last_node_id": 3,
   "last_link_id": 1,
   "nodes": [
     {
@@ -147,7 +147,7 @@
       "outputs": [],
       "properties": {"text": ""},
       "widgets_values": [
-        "LTX-2 MLX — Text to Video\n\nRequires macOS on Apple Silicon (arm64), ComfyUI-LTXVideo-style env setup per this pack's README, and ltx-2-mlx weights downloaded (dgrauet/ltx-2.3-mlx-q8 here).\n\nLTX2MLXGenerate saves + previews the video itself (is_output_node) -- no separate SaveVideo/PreviewVideo node is needed downstream.\n\nThis example uses tiny settings (256x256, 25 frames, distilled pipeline) to keep runtime short. For production quality, expect much longer render times and higher memory pressure -- see this pack's README / the parent repo's MLX_INTEGRATION_NOTES.md for the two_stage/q8 8h+ render investigation."
+        "LTX-2 MLX — Text to Video\n\nRequires macOS on Apple Silicon (arm64) and this pack's requirements installed (see README). The loader downloads the dgrauet/ltx-2.3-mlx-q8 weights from Hugging Face on first run.\n\nLTX2MLXGenerate saves + previews the video itself (is_output_node) -- no separate SaveVideo/PreviewVideo node is needed downstream.\n\nThis example uses tiny settings (256x256, 25 frames, distilled pipeline) to keep runtime short. For production quality, expect much longer render times and higher memory pressure -- see the Benchmark section of this pack's README."
       ]
     }
   ],
