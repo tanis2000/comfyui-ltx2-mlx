@@ -1,5 +1,6 @@
 import platform
 
+import folder_paths
 from comfy_api.latest import io
 
 from ..nodes_registry import comfy_node
@@ -67,6 +68,11 @@ class LTX2MLXModelLoader(io.ComfyNode):
                     optional=True,
                     tooltip="Overrides model_dir if set (local path or HF repo id).",
                 ),
+                io.Autogrow.Input(
+                    "loras",
+                    template=io.Autogrow.TemplatePrefix(io.Custom("LTX2MLX_LORA").Input("lora"), prefix="lora_", min=0),
+                    optional=True,
+                ),
             ],
             outputs=[
                 io.Custom("LTX2MLX_PIPELINE").Output(display_name="pipeline"),
@@ -79,12 +85,14 @@ class LTX2MLXModelLoader(io.ComfyNode):
         model_dir: str,
         pipeline_type: str,
         low_ram: bool,
+        loras: io.Autogrow.Type,
         custom_model_dir: str = "",
     ) -> io.NodeOutput:
         _check_apple_silicon()
 
         resolved_dir = _resolve_model_dir(model_dir, custom_model_dir)
-        cache_key = ("t2v", resolved_dir, pipeline_type, low_ram)
+        lora_paths = tuple(loras.values())
+        cache_key = ("t2v", resolved_dir, pipeline_type, low_ram, lora_paths)
         cached = _PIPELINE_CACHE.get(cache_key)
         if cached is not None:
             return io.NodeOutput(cached)
@@ -94,6 +102,9 @@ class LTX2MLXModelLoader(io.ComfyNode):
         if low_ram:
             kwargs["low_ram_streaming"] = True
         pipeline = pipeline_cls(**kwargs)
+        # Upstream has no constructor argument for user LoRAs; its CLI sets this before
+        # the first generate and the transformer load fuses them in.
+        pipeline._pending_loras = list(lora_paths)
 
         _PIPELINE_CACHE.clear()
         _PIPELINE_CACHE[cache_key] = pipeline
@@ -118,6 +129,11 @@ class LTX2MLXAudioModelLoader(io.ComfyNode):
                     optional=True,
                     tooltip="Overrides model_dir if set (local path or HF repo id).",
                 ),
+                io.Autogrow.Input(
+                    "loras",
+                    template=io.Autogrow.TemplatePrefix(io.Custom("LTX2MLX_LORA").Input("lora"), prefix="lora_", min=0),
+                    optional=True,
+                ),
             ],
             outputs=[
                 io.Custom("LTX2MLX_A2V_PIPELINE").Output(display_name="pipeline"),
@@ -126,13 +142,18 @@ class LTX2MLXAudioModelLoader(io.ComfyNode):
 
     @classmethod
     def execute(
-        cls, model_dir: str, low_ram: bool, custom_model_dir: str = ""
+        cls,
+        model_dir: str,
+        low_ram: bool,
+        loras: io.Autogrow.Type,
+        custom_model_dir: str = "",
     ) -> io.NodeOutput:
         _check_apple_silicon()
         from ltx_pipelines_mlx import A2VidPipelineTwoStage
 
         resolved_dir = _resolve_model_dir(model_dir, custom_model_dir)
-        cache_key = ("a2v", resolved_dir, low_ram)
+        lora_paths = tuple(loras.values())
+        cache_key = ("a2v", resolved_dir, low_ram, lora_paths)
         cached = _PIPELINE_CACHE.get(cache_key)
         if cached is not None:
             return io.NodeOutput(cached)
@@ -141,7 +162,31 @@ class LTX2MLXAudioModelLoader(io.ComfyNode):
         if low_ram:
             kwargs["low_ram_streaming"] = True
         pipeline = A2VidPipelineTwoStage(**kwargs)
+        pipeline._pending_loras = list(lora_paths)
 
         _PIPELINE_CACHE.clear()
         _PIPELINE_CACHE[cache_key] = pipeline
         return io.NodeOutput(pipeline)
+
+
+@comfy_node(name="LTX2MLXLora", description="LTX-2 MLX LoRA")
+class LTX2MLXLora(io.ComfyNode):
+    """Pick a LoRA (ComfyUI-format LTX-2 safetensors) to fuse into an LTX-2.3 MLX pipeline."""
+
+    @classmethod
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="LTX2MLXLora",
+            category="LTX2MLX",
+            inputs=[
+                io.Combo.Input("lora_name", options=folder_paths.get_filename_list("loras")),
+                io.Float.Input("strength", default=1.0, min=-100.0, max=100.0, step=0.01),
+            ],
+            outputs=[
+                io.Custom("LTX2MLX_LORA").Output(display_name="lora"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, lora_name: str, strength: float) -> io.NodeOutput:
+        return io.NodeOutput((folder_paths.get_full_path_or_raise("loras", lora_name), strength))

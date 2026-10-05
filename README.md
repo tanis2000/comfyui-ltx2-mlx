@@ -43,7 +43,10 @@ path / different Hugging Face repo.
 ## Nodes
 
 - **LTX2MLXModelLoader** — loads a text/image-to-video pipeline (`two_stage`, `two_stage_hq`,
-  `one_stage`, or `distilled`). Pipelines are cached by `(model_dir, pipeline_type, low_ram)`.
+  `one_stage`, or `distilled`). Pipelines are cached by `(model_dir, pipeline_type, low_ram, loras)`.
+- **LTX2MLXLora** — picks a LoRA from ComfyUI's `loras` folder with a strength. Connect one or
+  more to the `loras` input of either loader; they are fused into the transformer when the
+  pipeline loads. Takes ComfyUI-format LTX-2 LoRAs (`diffusion_model.*` keys).
 - **LTX2MLXGenerate** — text-to-video, or image-to-video if an `IMAGE` is connected. Frame count
   is snapped to `8k+1` to match the VAE's 8x temporal compression.
 - **LTX2MLXAudioModelLoader** — loads the audio-to-video pipeline.
