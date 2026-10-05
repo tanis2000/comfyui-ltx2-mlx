@@ -9,6 +9,9 @@ MODEL_CHOICES = [
     "dgrauet/ltx-2.3-mlx-q8",
     "dgrauet/ltx-2.3-mlx-q4",
     "dgrauet/ltx-2.3-mlx",
+    "dgrauet/ltx-2.5-mlx-q8",
+    "dgrauet/ltx-2.5-mlx-q4",
+    "dgrauet/ltx-2.5-mlx",
 ]
 
 PIPELINE_CHOICES = [

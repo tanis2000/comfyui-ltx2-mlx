@@ -24,6 +24,9 @@ to support fp8.
   | `dgrauet/ltx-2.3-mlx-q8`       | ~21 GB | 32 GB+              |
   | `dgrauet/ltx-2.3-mlx` (bf16)   | ~42 GB | 64 GB+              |
 
+  The LTX-2.5 tiers (`dgrauet/ltx-2.5-mlx-q8`, `-q4`, bf16) have the same 22B DiT, so they need
+  about the same memory as the matching LTX-2.3 tier.
+
   Enable `low_ram` on the loader nodes to use block streaming and fit larger tiers on smaller
   machines, at some speed cost.
 
@@ -48,7 +51,12 @@ path / different Hugging Face repo.
   more to the `loras` input of either loader; they are fused into the transformer when the
   pipeline loads. Takes ComfyUI-format LTX-2 LoRAs (`diffusion_model.*` keys).
 - **LTX2MLXGenerate** — text-to-video, or image-to-video if an `IMAGE` is connected. Frame count
-  is snapped to `8k+1` to match the VAE's 8x temporal compression.
+  is snapped to `8k+1` to match the VAE's 8x temporal compression. Optional inputs:
+  - `last_image` + `last_image_strength`: the video ends on this frame (first-last-frame when
+    `image` is connected too; 0.7 is the strength the official LTX-2.5 FLF2V template uses).
+  - `generate_audio`: off skips the audio decode and writes a video-only mp4.
+  - `video_decoder`: `diffusion` uses the LTX-2.5 diffusion VAE decoder (2.5 tiers only; much
+    slower than the default `conv`).
 - **LTX2MLXAudioModelLoader** — loads the audio-to-video pipeline.
 - **LTX2MLXAudioToVideo** — generates video driven by an `AUDIO` input (and an optional
   conditioning `IMAGE`), for song-driven / music-video workflows.
