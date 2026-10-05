@@ -75,6 +75,33 @@ class LTX2MLXGenerate(io.ComfyNode):
                 io.Float.Input("cfg_scale", default=3.0, min=0.0, max=20.0, step=0.1),
                 io.Float.Input("frame_rate", default=24.0, min=1.0, max=60.0),
                 io.String.Input("filename_prefix", default="ltx2mlx/video"),
+                io.Image.Input(
+                    "last_image",
+                    optional=True,
+                    tooltip="Optional last frame. Together with image this makes a first-last-frame video.",
+                ),
+                io.Float.Input(
+                    "last_image_strength",
+                    default=0.7,
+                    min=0.0,
+                    max=1.0,
+                    step=0.05,
+                    optional=True,
+                    tooltip="How strictly the video ends on last_image (1.0 = exactly).",
+                ),
+                io.Boolean.Input(
+                    "generate_audio",
+                    default=True,
+                    optional=True,
+                    tooltip="Off skips the audio decode; the mp4 has no audio track.",
+                ),
+                io.Combo.Input(
+                    "video_decoder",
+                    options=["conv", "diffusion"],
+                    default="conv",
+                    optional=True,
+                    tooltip="diffusion is the LTX-2.5 diffusion VAE decoder (2.5 models only, much slower).",
+                ),
             ],
             hidden=[io.Hidden.prompt, io.Hidden.extra_pnginfo],
             is_output_node=True,
@@ -96,14 +123,30 @@ class LTX2MLXGenerate(io.ComfyNode):
         frame_rate: float,
         filename_prefix: str,
         image=None,
+        last_image=None,
+        last_image_strength: float = 0.7,
+        generate_audio: bool = True,
+        video_decoder: str = "conv",
     ) -> io.NodeOutput:
         frames = _snap_frame_count(num_frames)
         tmp_path = _tmp_render_path()
 
-        image_path = None
-        if image is not None:
-            image_path = _tensor_to_image_path(image)
+        from ltx_pipelines_mlx.utils.args import ImageConditioningInput
 
+        # The pipeline is cached across runs and reads these as attributes, like upstream's CLI sets them.
+        # A decoder loaded for the other mode is dropped so the next decode loads the requested one.
+        if pipeline.video_decoder != video_decoder:
+            pipeline.video_decoder_block.free()
+        pipeline.video_decoder = video_decoder
+        pipeline.generate_audio = generate_audio
+
+        image_path = _tensor_to_image_path(image) if image is not None else None
+        last_path = _tensor_to_image_path(last_image) if last_image is not None else None
+        images = None
+        if last_path is not None:
+            images = [ImageConditioningInput(path=last_path, frame_idx=-1, strength=last_image_strength)]
+            if image_path is not None:
+                images.insert(0, ImageConditioningInput(path=image_path, frame_idx=0, strength=1.0))
         try:
             pipeline.generate_and_save(
                 prompt=prompt,
@@ -114,10 +157,12 @@ class LTX2MLXGenerate(io.ComfyNode):
                 frame_rate=frame_rate,
                 seed=seed,
                 cfg_scale=cfg_scale,
-                image=image_path,
+                image=image_path if images is None else None,
+                images=images,
             )
         finally:
-            if image_path is not None:
-                os.remove(image_path)
+            for path in (image_path, last_path):
+                if path is not None:
+                    os.remove(path)
 
         return _save_render(tmp_path, filename_prefix)
